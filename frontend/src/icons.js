@@ -140,3 +140,16 @@ export const ClockIcon = (p) => (
     <path d="M12 7.5V12l3 2" />
   </svg>
 );
+
+export const BellIcon = (p) => (
+  <svg {...base} {...p}>
+    <path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2H4.5l1.5-2Z" />
+    <path d="M10 21a2 2 0 0 0 4 0" />
+  </svg>
+);
+
+export const WrenchIcon = (p) => (
+  <svg {...base} {...p}>
+    <path d="M14.7 6.3a4 4 0 0 0-5.1 5.1L4 17v3h3l5.6-5.6a4 4 0 0 0 5.1-5.1l-2.5 2.5-2.4-.5-.5-2.4 2.4-2.6Z" />
+  </svg>
+);

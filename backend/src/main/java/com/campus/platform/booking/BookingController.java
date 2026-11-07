@@ -1,6 +1,7 @@
 package com.campus.platform.booking;
 
 import com.campus.platform.entity.*;
+import com.campus.platform.notification.NotificationService;
 import com.campus.platform.repository.BookingRepository;
 import com.campus.platform.repository.ResourceRepository;
 import com.campus.platform.repository.UserRepository;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -37,12 +39,14 @@ public class BookingController {
     private final BookingRepository bookingRepository;
     private final ResourceRepository resourceRepository;
     private final UserRepository userRepository;
+    private final NotificationService notifications;
 
     public BookingController(BookingRepository bookingRepository, ResourceRepository resourceRepository,
-                             UserRepository userRepository) {
+                             UserRepository userRepository, NotificationService notifications) {
         this.bookingRepository = bookingRepository;
         this.resourceRepository = resourceRepository;
         this.userRepository = userRepository;
+        this.notifications = notifications;
     }
 
     // CREATE - any logged-in user. Students start as PENDING; an admin's own booking is approved straight away.
@@ -82,7 +86,12 @@ public class BookingController {
         booking.setEndTime(end);
         booking.setPurpose(request.purpose() == null ? null : request.purpose().trim());
         booking.setStatus(user.getRole() == Role.ADMIN ? BookingStatus.APPROVED : BookingStatus.PENDING);
-        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(bookingRepository.save(booking)));
+        Booking saved = bookingRepository.save(booking);
+        if (saved.getStatus() == BookingStatus.PENDING) {
+            notifications.notifyAdmins(user.getName() + " requested " + resource.getName() + " for " + when(saved) + ".",
+                    "bookings");
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(saved));
     }
 
     // READ - my own bookings
@@ -128,7 +137,11 @@ public class BookingController {
         }
         booking.setStatus(BookingStatus.APPROVED);
         booking.setDecisionNote(note(body));
-        return ResponseEntity.ok(toResponse(bookingRepository.save(booking)));
+        Booking saved = bookingRepository.save(booking);
+        notifications.notifyUser(saved.getUser(),
+                "Your booking for " + saved.getResource().getName() + " on " + when(saved) + " was approved.",
+                "bookings");
+        return ResponseEntity.ok(toResponse(saved));
     }
 
     // UPDATE - admin rejects a pending request
@@ -141,7 +154,12 @@ public class BookingController {
         }
         booking.setStatus(BookingStatus.REJECTED);
         booking.setDecisionNote(note(body));
-        return ResponseEntity.ok(toResponse(bookingRepository.save(booking)));
+        Booking saved = bookingRepository.save(booking);
+        String reason = saved.getDecisionNote() == null ? "" : " Reason: " + saved.getDecisionNote();
+        notifications.notifyUser(saved.getUser(),
+                "Your booking for " + saved.getResource().getName() + " on " + when(saved) + " was declined." + reason,
+                "bookings");
+        return ResponseEntity.ok(toResponse(saved));
     }
 
     // UPDATE - the person who made the booking (or an admin) cancels it
@@ -159,8 +177,18 @@ public class BookingController {
         if (booking.getStatus() != BookingStatus.PENDING && booking.getStatus() != BookingStatus.APPROVED) {
             return error(HttpStatus.CONFLICT, "This booking can no longer be cancelled.");
         }
+        boolean wasApproved = booking.getStatus() == BookingStatus.APPROVED;
         booking.setStatus(BookingStatus.CANCELLED);
-        return ResponseEntity.ok(toResponse(bookingRepository.save(booking)));
+        Booking saved = bookingRepository.save(booking);
+        if (isOwner && wasApproved) {
+            notifications.notifyAdmins(user.getName() + " cancelled their booking for " + saved.getResource().getName()
+                    + " on " + when(saved) + ".", "bookings");
+        } else if (!isOwner) {
+            notifications.notifyUser(saved.getUser(),
+                    "Your booking for " + saved.getResource().getName() + " on " + when(saved)
+                            + " was cancelled by an administrator.", "bookings");
+        }
+        return ResponseEntity.ok(toResponse(saved));
     }
 
     // ---- helpers ----
@@ -177,6 +205,15 @@ public class BookingController {
         if (auth == null) return null;
         // The token's subject is the user's email (see JwtService).
         return userRepository.findByEmailIgnoreCase(auth.getName()).orElse(null);
+    }
+
+    private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ofPattern("d MMM");
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+
+    // "7 Nov, 10:00-11:00" - used inside notification messages.
+    private static String when(Booking b) {
+        return b.getStartTime().format(DAY_FORMAT) + ", " + b.getStartTime().format(TIME_FORMAT)
+                + "-" + b.getEndTime().format(TIME_FORMAT);
     }
 
     private static String note(DecisionRequest body) {

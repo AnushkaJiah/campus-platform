@@ -47,7 +47,13 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/bookings").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/bookings/mine", "/api/bookings/resource/*").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/api/bookings/*/cancel").authenticated()
-                // Approving, rejecting and listing every booking fall through to the admin-only rule below.
+                // Maintenance: any logged-in user can report a problem and see their own reports.
+                .requestMatchers(HttpMethod.POST, "/api/maintenance").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/maintenance/mine").authenticated()
+                // Notifications are personal: every logged-in user reads and clears their own.
+                .requestMatchers("/api/notifications", "/api/notifications/**").authenticated()
+                // Approving/rejecting bookings, listing every booking or report and changing a report's status
+                // fall through to the admin-only rule below.
                 // Everything else (alerts, readings history, creating/editing/deleting) is admin only.
                 .anyRequest().hasRole("ADMIN"))
             .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(roleConverter())));

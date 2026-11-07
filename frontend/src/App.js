@@ -3,6 +3,8 @@ import './index.css';
 import AdminView from './components/AdminView';
 import StudentView from './components/StudentView';
 import BookingsView from './components/BookingsView';
+import MaintenanceView from './components/MaintenanceView';
+import NotificationBell from './components/NotificationBell';
 import Login from './components/Login';
 import { CrestIcon } from './icons';
 import { loadSession, saveSession, clearSession, SESSION_EXPIRED_EVENT } from './auth';
@@ -19,10 +21,12 @@ function App() {
         { key: 'admin', label: 'Dashboard' },
         { key: 'student', label: 'Find a space' },
         { key: 'bookings', label: 'Bookings' },
+        { key: 'maintenance', label: 'Maintenance' },
       ]
     : [
         { key: 'student', label: 'Find a space' },
         { key: 'bookings', label: 'My bookings' },
+        { key: 'maintenance', label: 'Maintenance' },
       ];
   const activeView = navItems.some((item) => item.key === view) ? view : navItems[0].key;
 
@@ -30,6 +34,7 @@ function App() {
     admin: 'Resource & energy monitoring',
     student: 'Find an available space',
     bookings: isAdmin ? 'Review and manage booking requests' : 'Your reservations',
+    maintenance: isAdmin ? 'Track and resolve reported problems' : 'Report a problem and follow the repair',
   };
 
   const handleLogin = (newSession) => {
@@ -78,6 +83,11 @@ function App() {
               </button>
             ))}
           </div>
+          <NotificationBell
+            onNavigate={(target) => {
+              if (navItems.some((item) => item.key === target)) setView(target);
+            }}
+          />
           <div className="user-chip">
             <span className="user-chip__avatar">{(session.name || '?').charAt(0).toUpperCase()}</span>
             <span className="user-chip__text">
@@ -95,6 +105,7 @@ function App() {
         {activeView === 'admin' && <AdminView />}
         {activeView === 'student' && <StudentView />}
         {activeView === 'bookings' && <BookingsView isAdmin={isAdmin} />}
+        {activeView === 'maintenance' && <MaintenanceView isAdmin={isAdmin} />}
       </main>
 
       <footer className="app-footer">
