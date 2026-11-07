@@ -5,6 +5,8 @@ import StudentView from './components/StudentView';
 import BookingsView from './components/BookingsView';
 import MaintenanceView from './components/MaintenanceView';
 import NotificationBell from './components/NotificationBell';
+import ThemeToggle from './components/ThemeToggle';
+import { useTheme } from './theme';
 import Login from './components/Login';
 import { CrestIcon } from './icons';
 import { loadSession, saveSession, clearSession, SESSION_EXPIRED_EVENT } from './auth';
@@ -12,6 +14,7 @@ import { loadSession, saveSession, clearSession, SESSION_EXPIRED_EVENT } from '.
 function App() {
   const [session, setSession] = useState(() => loadSession());
   const [view, setView] = useState('admin');
+  const [theme, toggleTheme] = useTheme();
 
   const isAdmin = session?.role === 'ADMIN';
 
@@ -55,7 +58,12 @@ function App() {
   }, [handleLogout]);
 
   if (!session) {
-    return <Login onLogin={handleLogin} />;
+    return (
+      <>
+        <ThemeToggle theme={theme} onToggle={toggleTheme} floating />
+        <Login onLogin={handleLogin} />
+      </>
+    );
   }
 
   return (
@@ -83,6 +91,7 @@ function App() {
               </button>
             ))}
           </div>
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
           <NotificationBell
             onNavigate={(target) => {
               if (navItems.some((item) => item.key === target)) setView(target);

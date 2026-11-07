@@ -153,3 +153,16 @@ export const WrenchIcon = (p) => (
     <path d="M14.7 6.3a4 4 0 0 0-5.1 5.1L4 17v3h3l5.6-5.6a4 4 0 0 0 5.1-5.1l-2.5 2.5-2.4-.5-.5-2.4 2.4-2.6Z" />
   </svg>
 );
+
+export const SunIcon = (p) => (
+  <svg {...base} {...p}>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4" />
+  </svg>
+);
+
+export const MoonIcon = (p) => (
+  <svg {...base} {...p}>
+    <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
+  </svg>
+);
