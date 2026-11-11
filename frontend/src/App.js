@@ -80,17 +80,6 @@ function App() {
           </div>
         </div>
         <div className="app-header__actions">
-          <div className="view-toggle">
-            {navItems.map((item) => (
-              <button
-                key={item.key}
-                className={`view-toggle__button ${activeView === item.key ? 'view-toggle__button--active' : ''}`}
-                onClick={() => setView(item.key)}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
           <ThemeToggle theme={theme} onToggle={toggleTheme} />
           <NotificationBell
             onNavigate={(target) => {
@@ -108,6 +97,20 @@ function App() {
             </button>
           </div>
         </div>
+        <nav className="app-header__nav" aria-label="Main">
+          <div className="view-toggle">
+            {navItems.map((item) => (
+              <button
+                key={item.key}
+                className={`view-toggle__button ${activeView === item.key ? 'view-toggle__button--active' : ''}`}
+                onClick={() => setView(item.key)}
+                aria-current={activeView === item.key ? 'page' : undefined}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </nav>
       </header>
 
       <main className="app-main">

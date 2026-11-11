@@ -1620,8 +1620,39 @@ body { transition: background-color 0.25s ease, color 0.25s ease; }
 
 .theme-toggle--floating:hover { background: var(--brand-light); }
 
-/* The header is a few buttons wider now, so let it wrap instead of overflowing. */
-.app-header { flex-wrap: wrap; gap: 20px; }
-@media (max-width: 1280px) {
-  .view-toggle__button { padding: 10px 15px; }
+/* ====================================================================
+   Header layout: title and account on the first row, page tabs on their own row
+   ==================================================================== */
+.app-header {
+  flex-wrap: wrap;
+  row-gap: 22px;
+  padding-top: 28px;
+  padding-bottom: 24px;
+}
+
+.app-header__nav {
+  flex: 0 0 100%;
+  order: 3;
+  position: relative;
+  z-index: 1;
+}
+
+.app-header__nav .view-toggle {
+  display: inline-flex;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.app-header__nav .view-toggle::-webkit-scrollbar { display: none; }
+.view-toggle__button { white-space: nowrap; }
+
+/* Keyboard focus gets a clear ring; a mouse click does not leave one behind. */
+.view-toggle__button:focus { outline: none; }
+.view-toggle__button:focus-visible { outline: 2px solid var(--gold); outline-offset: -4px; }
+.bell__button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+@media (max-width: 640px) {
+  .app-header { padding: 22px 16px 18px; }
+  .user-chip__text { display: none; }
 }
