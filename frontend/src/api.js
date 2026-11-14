@@ -50,6 +50,9 @@ export const api = {
   rejectBooking: (id, note) => http.put(`/bookings/${id}/reject`, { note }).then((r) => r.data),
   cancelBooking: (id) => http.put(`/bookings/${id}/cancel`).then((r) => r.data),
 
+  // Analytics (admin)
+  getAnalytics: (days) => http.get('/analytics/summary', { params: { days } }).then((r) => r.data),
+
   // Maintenance requests
   createMaintenance: (report) => http.post('/maintenance', report).then((r) => r.data),
   getMyMaintenance: () => http.get('/maintenance/mine').then((r) => r.data),

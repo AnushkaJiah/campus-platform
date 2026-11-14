@@ -4,6 +4,7 @@ import AdminView from './components/AdminView';
 import StudentView from './components/StudentView';
 import BookingsView from './components/BookingsView';
 import MaintenanceView from './components/MaintenanceView';
+import AnalyticsView from './components/AnalyticsView';
 import NotificationBell from './components/NotificationBell';
 import ThemeToggle from './components/ThemeToggle';
 import { useTheme } from './theme';
@@ -22,6 +23,7 @@ function App() {
   const navItems = isAdmin
     ? [
         { key: 'admin', label: 'Dashboard' },
+        { key: 'analytics', label: 'Analytics' },
         { key: 'student', label: 'Find a space' },
         { key: 'bookings', label: 'Bookings' },
         { key: 'maintenance', label: 'Maintenance' },
@@ -37,6 +39,7 @@ function App() {
     admin: 'Resource & energy monitoring',
     student: 'Find an available space',
     bookings: isAdmin ? 'Review and manage booking requests' : 'Your reservations',
+    analytics: 'Utilization, energy and peak-hour trends',
     maintenance: isAdmin ? 'Track and resolve reported problems' : 'Report a problem and follow the repair',
   };
 
@@ -116,6 +119,7 @@ function App() {
       <main className="app-main">
         {activeView === 'admin' && <AdminView />}
         {activeView === 'student' && <StudentView />}
+        {activeView === 'analytics' && isAdmin && <AnalyticsView />}
         {activeView === 'bookings' && <BookingsView isAdmin={isAdmin} />}
         {activeView === 'maintenance' && <MaintenanceView isAdmin={isAdmin} />}
       </main>
