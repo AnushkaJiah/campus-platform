@@ -1782,3 +1782,8 @@ body { transition: background-color 0.25s ease, color 0.25s ease; }
   .hbar, .hbar--room { grid-template-columns: minmax(0, 1fr) auto; row-gap: 6px; }
   .hbar__track { grid-column: 1 / -1; grid-row: 2; }
 }
+
+.chart-card__note { margin: -4px 0 12px; font-size: 12.5px; line-height: 1.5; color: var(--text-muted); max-width: 70ch; }
+/* Fixed-width columns so every bar in the ranking has the same length scale. */
+.hbar--room { grid-template-columns: 210px minmax(0, 1fr) 260px; }
+@media (max-width: 900px) { .hbar--room { grid-template-columns: minmax(0, 1fr) auto; row-gap: 6px; } .hbar--room .hbar__track { grid-column: 1 / -1; grid-row: 2; } }

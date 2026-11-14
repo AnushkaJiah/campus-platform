@@ -73,6 +73,9 @@ public class AnalyticsController {
         Double avgTemp() { return tempCount == 0 ? null : round1(tempSum / tempCount); }
     }
 
+    private static final int OPERATING_START_HOUR = 8;   // 08:00
+    private static final int OPERATING_END_HOUR = 20;    // up to 20:00
+
     private final SensorReadingRepository readingRepository;
     private final ResourceRepository resourceRepository;
     private final AlertRepository alertRepository;
@@ -116,10 +119,15 @@ public class AnalyticsController {
                 util = occupancy / resource.getCapacity() * 100.0;
             }
 
-            campus.add(util, energy, temperature);
-            perDay.computeIfAbsent(timestamp.toLocalDate(), d -> new Acc()).add(util, energy, temperature);
+            // Utilization averages only count operating hours, so empty nights do not make every room look
+            // under-used. The hour-by-hour chart still uses all 24 hours.
+            boolean operatingHours = timestamp.getHour() >= OPERATING_START_HOUR && timestamp.getHour() < OPERATING_END_HOUR;
+            Double averagedUtil = operatingHours ? util : null;
+
+            campus.add(averagedUtil, energy, temperature);
+            perDay.computeIfAbsent(timestamp.toLocalDate(), d -> new Acc()).add(averagedUtil, energy, temperature);
             perHour[timestamp.getHour()].add(util, energy, temperature);
-            perRoom.computeIfAbsent(resourceId, id -> new Acc()).add(util, energy, temperature);
+            perRoom.computeIfAbsent(resourceId, id -> new Acc()).add(averagedUtil, energy, temperature);
         }
 
         // Every day in the range appears, even with no data, so the chart's time axis has no gaps.

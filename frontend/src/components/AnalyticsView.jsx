@@ -138,7 +138,7 @@ export default function AnalyticsView() {
           <div>
             <p className="stat-tile__value">{data.totals.avgUtilizationPercent == null ? '—' : data.totals.avgUtilizationPercent}
               {data.totals.avgUtilizationPercent != null && <span className="stat-tile__unit">%</span>}</p>
-            <p className="stat-tile__label">Average utilization</p>
+            <p className="stat-tile__label">Avg utilization, 08–20h</p>
           </div>
         </div>
         <div className="stat-tile">
@@ -180,7 +180,7 @@ export default function AnalyticsView() {
           )}
 
           <div className="chart-grid">
-            <ChartCard title="Utilization trend" subtitle="Average share of capacity in use, per day">
+            <ChartCard title="Utilization trend" subtitle="Average share of capacity in use between 08:00 and 20:00, per day">
               <LineChart data={dailyUtil} minTop={100} format={(v) => `${v}%`} ariaLabel="Average utilization per day" />
             </ChartCard>
             <ChartCard title="Energy per day" subtitle="Total kWh recorded by all sensors">
@@ -203,7 +203,11 @@ export default function AnalyticsView() {
             </ChartCard>
           </div>
 
-          <ChartCard title="Space ranking" subtitle="Average utilization over the period, busiest first">
+          <ChartCard title="Space ranking" subtitle="Average utilization between 08:00 and 20:00 over the period, busiest first">
+            <p className="chart-card__note">
+              The bar is the average. "Busiest moment" is the single fullest reading, so a space can be quiet on average
+              and still get crowded once.
+            </p>
             <ul className="band-legend" aria-label="Legend">
               <li><span className="band-dot band-dot--low" /> Under-used (below 30%)</li>
               <li><span className="band-dot band-dot--ok" /> Well used</li>
@@ -227,7 +231,12 @@ export default function AnalyticsView() {
                     </span>
                     <span className="hbar__value">
                       {pct(r.avgUtilizationPercent)}
-                      <small>{b.label}{r.peakUtilizationPercent != null ? ` · peak ${r.peakUtilizationPercent}%` : ''}</small>
+                      <small>
+                        {b.label}
+                        {r.peakUtilizationPercent != null && (r.peakUtilizationPercent > 100
+                          ? ` · went over capacity at peak (${r.peakUtilizationPercent}%)`
+                          : ` · busiest moment ${r.peakUtilizationPercent}%`)}
+                      </small>
                     </span>
                   </li>
                 );
