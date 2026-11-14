@@ -166,3 +166,35 @@ export const MoonIcon = (p) => (
     <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
   </svg>
 );
+
+export const CafeIcon = (p) => (
+  <svg {...base} {...p}>
+    <path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9z" />
+    <path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H16.5" />
+    <path d="M8 3v3M12 3v3" />
+  </svg>
+);
+
+export const DumbbellIcon = (p) => (
+  <svg {...base} {...p}>
+    <path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11" />
+  </svg>
+);
+
+export const HallIcon = (p) => (
+  <svg {...base} {...p}>
+    <path d="M3 8l9-4 9 4" />
+    <path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8" />
+    <path d="M3 20h18" />
+  </svg>
+);
+
+// Picks the most recognisable icon for a space: the name wins (Cafeteria,
+// Fitness Center, Seminar Hall), then the stored type is the fallback.
+export function SpaceIcon({ resource, ...rest }) {
+  const name = (resource?.name || '').toLowerCase();
+  if (/(cafe|canteen|food|dining|kitchen)/.test(name)) return <CafeIcon {...rest} />;
+  if (/(fitness|gym|sport|athletic)/.test(name)) return <DumbbellIcon {...rest} />;
+  if (/(hall|auditorium|theatre|theater|seminar)/.test(name)) return <HallIcon {...rest} />;
+  return <TypeIcon type={resource?.type} {...rest} />;
+}

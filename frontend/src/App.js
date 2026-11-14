@@ -5,6 +5,7 @@ import StudentView from './components/StudentView';
 import BookingsView from './components/BookingsView';
 import MaintenanceView from './components/MaintenanceView';
 import AnalyticsView from './components/AnalyticsView';
+import CampusMapView from './components/CampusMapView';
 import NotificationBell from './components/NotificationBell';
 import ThemeToggle from './components/ThemeToggle';
 import { useTheme } from './theme';
@@ -24,6 +25,7 @@ function App() {
     ? [
         { key: 'admin', label: 'Dashboard' },
         { key: 'analytics', label: 'Analytics' },
+        { key: 'map', label: 'Campus map' },
         { key: 'student', label: 'Find a space' },
         { key: 'bookings', label: 'Bookings' },
         { key: 'maintenance', label: 'Maintenance' },
@@ -40,6 +42,7 @@ function App() {
     student: 'Find an available space',
     bookings: isAdmin ? 'Review and manage booking requests' : 'Your reservations',
     analytics: 'Utilization, energy and peak-hour trends',
+    map: 'Live utilization across buildings and floors',
     maintenance: isAdmin ? 'Track and resolve reported problems' : 'Report a problem and follow the repair',
   };
 
@@ -120,6 +123,7 @@ function App() {
         {activeView === 'admin' && <AdminView />}
         {activeView === 'student' && <StudentView />}
         {activeView === 'analytics' && isAdmin && <AnalyticsView />}
+        {activeView === 'map' && isAdmin && <CampusMapView />}
         {activeView === 'bookings' && <BookingsView isAdmin={isAdmin} />}
         {activeView === 'maintenance' && <MaintenanceView isAdmin={isAdmin} />}
       </main>

@@ -141,6 +141,8 @@ export function ColumnChart({ data, height = 220, tone = 'navy', labelEvery = 1,
   const n = data.length;
   const slot = innerW / n;
   const barW = Math.min(26, slot * 0.64);
+  // On narrow screens skip labels so neighbours never touch (about 46px per label).
+  const every = Math.max(labelEvery, Math.ceil(46 / Math.max(slot, 1)));
   const y = (v) => M.top + innerH - (v / top) * innerH;
   const hovered = hover != null ? data[hover] : null;
   const peak = data.findIndex((d) => d.highlight);
@@ -164,7 +166,7 @@ export function ColumnChart({ data, height = 220, tone = 'navy', labelEvery = 1,
             {format(data[peak].value)}
           </text>
         )}
-        {data.map((d, i) => (i % labelEvery === 0 ? (
+        {data.map((d, i) => (i % every === 0 ? (
           <text key={`l${i}`} className="chart__axis-text" x={M.left + slot * (i + 0.5)} y={height - 8} textAnchor="middle">{d.label}</text>
         ) : null))}
         {data.map((d, i) => (
