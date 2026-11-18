@@ -1,124 +1,95 @@
 # Smart Campus Resource Management Platform
 
-A centralized platform for monitoring and managing campus resources — classrooms, labs, study spaces, energy usage, and environmental conditions — using simulated IoT sensors, automatic alert rules, and live dashboards for both campus administrators and students.
+A web platform that shows which campus spaces are empty, full or wasted. A Python simulator stands in for room
+sensors and sends occupancy, temperature and energy readings to a Spring Boot REST API backed by MySQL. A React
+interface lets administrators watch spaces live, approve bookings, track maintenance and study utilization, and lets
+students find and book spaces.
 
-## The Problem
+Capstone project, UCF 439.
 
-Campus resource management today is manual and reactive: no one notices a classroom's AC running in an empty room, or a lecture hall going over capacity, until someone happens to walk by or a complaint is filed. Students, meanwhile, have no easy way to find an open study room or lab without physically checking each one.
+## Features
 
-## The Solution
+| Area | What it does |
+| --- | --- |
+| Live dashboard | Latest occupancy, temperature and utilization per space, with active alerts (overcrowding, temperature, AC left on in an empty room) |
+| Campus map | Buildings and floors as a floor plan or a 3D view; colour shows how full each space is, a ring marks an active alert |
+| Booking | Students request a slot, admins approve or reject (with a reason), either side can cancel, everyone is notified |
+| Notifications | Bell in the header with readable messages and mark-as-read |
+| Maintenance | Anyone reports a fault with a priority; admins update its status |
+| Analytics | Utilization over a chosen period: daily trend, busiest hours, ranking of under-used and crowded spaces, alert counts (utilization averages cover 08:00-20:00) |
+| Login and roles | Signed JWT login with two roles, ADMIN and STUDENT; admin endpoints are closed by default |
+| Themes and phones | Light and dark mode with a toggle; every page works on a phone |
+| CI | GitHub Actions builds the backend, the frontend and checks the simulator on every push |
 
-This platform makes campus monitoring **proactive instead of reactive**:
-- Simulated IoT sensors continuously report occupancy, temperature, humidity, and energy use for every room
-- A backend rule engine automatically detects problems the moment they happen — energy waste, overcrowding, unsafe environmental conditions — and raises alerts for staff
-- Students get a simple, live view of which classrooms, labs, and study spaces are actually available right now
-- Admins get a real-time monitoring dashboard with occupancy, energy, environment, and an active alerts feed
+## Tech stack
 
-## Tech Stack
-- **Backend:** Spring Boot (Java 17), Spring Data JPA
-- **Database:** MySQL
-- **Frontend:** React.js
-- **IoT:** Python-based simulated sensor data generator
-- **Version Control:** Git/GitHub
+Java 17, Spring Boot 3.3.4, Spring Security, JPA / Hibernate, MySQL, React, Python 3, GitHub Actions.
 
-## Architecture
+## Repository layout
+
+| Folder | Contents |
+| --- | --- |
+| `backend/` | Spring Boot application |
+| `frontend/` | React application |
+| `simulator/` | Live sensor simulator and the history generator `backfill_history.py` |
+| `.github/workflows/` | CI definition |
+
+## Run it locally
+
+Requirements: Java 17, Maven, Node.js 20, MySQL, Python 3.
+
+1. **Start MySQL.** On a Mac with Homebrew: `brew services restart mysql`.
+2. **Backend.** The database `campus_platform` is created automatically. Check the username and password in
+   `backend/src/main/resources/application.properties`, then:
+   ```
+   cd backend
+   mvn spring-boot:run
+   ```
+   The API runs on http://localhost:8080. Two demo accounts are created on first start.
+3. **Frontend.**
+   ```
+   cd frontend
+   npm install
+   npm start
+   ```
+   Open http://localhost:3000.
+4. **Live sensor data.** In a third terminal, from the project root:
+   ```
+   python3 simulator/simulate_sensors.py
+   ```
+5. **Realistic history for Analytics (optional).** Stop the live simulator, then:
+   ```
+   pip3 install pymysql --break-system-packages
+   python3 simulator/backfill_history.py
+   ```
+   It generates 30 days of readings shaped like a real campus. **It deletes existing readings and alerts**, and asks
+   you to type `yes` first. Use `--dry-run` to preview.
+
+## Demo accounts
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | admin@campus.edu | admin123 |
+| Student | student@campus.edu | student123 |
+
+These are demo credentials for local use only.
+
+## How it works
 
 ```
-[Python IoT Simulator] --POST--> [Spring Boot REST API] --JPA--> [MySQL]
-                                          |
-                                          v
-                                  [Alert Rule Engine]
-                                  (energy waste, overcrowding,
-                                   environmental checks)
-                                          |
-                                          v
-                              [React Dashboard] (polls every 5s)
-                              - Admin view: live sensors + alerts
-                              - Student view: available spaces
+Python simulator  -->  Spring Boot REST API  -->  MySQL
+                              ^
+                       React web app (JWT)
 ```
 
-## Project Structure
-```
-campus-platform/
-├── backend/       # Spring Boot REST API
-│   └── src/main/java/com/campus/platform/
-│       ├── entity/       # Building, Resource, SensorReading, Alert
-│       ├── repository/   # Spring Data JPA repositories
-│       ├── service/      # AlertService (the rule engine)
-│       └── controller/   # REST endpoints
-├── frontend/      # React dashboard (Admin + Student views)
-└── simulator/     # Python IoT sensor data simulator
-```
+- Utilization = occupancy / capacity. Under 30% is under-used, over 85% is crowded.
+- The API is the only door to the database: the simulator and the web app both go through it.
+- A JWT filter checks every request; endpoints not explicitly opened to students require the ADMIN role.
+- Timestamps are stored in UTC.
 
-## Key Features
+## Known limitations
 
-### Smart Alert Rules
-| Rule | Trigger | Severity |
-|---|---|---|
-| Energy Waste | Room is empty (0 occupancy) but AC and/or lights are still on | Medium |
-| Overcrowding | Occupancy exceeds the room's stated capacity | High |
-| Environmental | Temperature outside 16-28°C, or humidity over 70% | Medium/High |
-
-Alerts are de-duplicated — the same unresolved problem won't spam a new alert every few seconds while it persists.
-
-### Two Purpose-Built Views
-- **Admin dashboard:** live sensor data per room, color-coded status (normal / energy waste / critical), active alerts feed with one-click resolve
-- **Student view:** browse available classrooms, labs, and study spaces, filterable by type — no sensor/energy detail, just what's needed to find a space
-
-## Running Locally
-
-### Prerequisites
-```bash
-java -version      # Java 17+
-mvn -version        # Maven
-node -version       # Node.js 18+
-mysql --version
-python3 --version
-```
-
-### 1. Database setup
-```sql
-CREATE DATABASE campus_platform;
-```
-Update `backend/src/main/resources/application.properties` with your MySQL credentials.
-
-### 2. Run the backend
-```bash
-cd backend
-mvn spring-boot:run
-```
-Tables are created automatically. Verify at `http://localhost:8080/api/health`.
-
-### 3. (Optional) Load sample data
-Run `sample-data.sql` against your database to add a few more buildings and rooms beyond the default one, for a fuller demo.
-
-### 4. Run the IoT simulator
-```bash
-cd simulator
-pip3 install -r requirements.txt
-python3 simulate_sensors.py
-```
-Generates a new sensor reading for every resource every 5 seconds, occasionally simulating overcrowding/energy-waste/environmental scenarios so the alert rules have something to catch.
-
-### 5. Run the frontend
-```bash
-cd frontend
-npm install
-npm start
-```
-Visit `http://localhost:3000`. Use the Admin/Student toggle in the header to switch views.
-
-## API Overview
-| Endpoint | Method | Purpose |
-|---|---|---|
-| `/api/buildings` | GET/POST/PUT/DELETE | Manage buildings |
-| `/api/resources` | GET/POST/PUT/DELETE | Manage rooms/labs/spaces (filterable by type, status, building) |
-| `/api/sensor-readings` | GET/POST | Sensor data ingestion + history |
-| `/api/alerts` | GET | Active alerts |
-| `/api/alerts/{id}/resolve` | PUT | Mark an alert resolved |
-
-## Status
-
-**Completed:** Backend, database design, full CRUD APIs, IoT simulation, smart alert engine, Admin + Student dashboards.
-
-**Planned for final submission:** Historical analytics/charts, GitHub Actions CI/CD, basic login/role separation.
+- Sensor data is simulated; the reading format is fixed so real devices could replace the simulator.
+- The database password and JWT secret in `application.properties` are development values and must be moved to
+  environment variables before any real deployment.
+- Automated back-end tests are minimal.
